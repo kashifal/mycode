@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+<!--    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
+
+</head>
+<body>
+<div id="app">
+    <v-app>
+        <v-container fluid grid-list-md>
+            <v-layout row wrap>
+                <v-flex xs12 md9 class="extrases">
+                    <v-card elevation="20">
+                        <v-card-text>
+                            <v-card-text>
+                                <span class="d-flex justify-center text-h3">
+                                    Complete Your Booking
+                                </span>
+                            </v-card-text>
+                            <v-card-text>
+                                <p class="text-center">
+                                    We cover all Dublin, Kildare, Meath and part of Wicklow and Louth
+                                </p>
+                            </v-card-text>
+                            <v-divider class="my-4"></v-divider>
+                            <v-card-title>STEP 1: CHOOSE SERVICE TYPE</v-card-title>
+                            <v-card-text class="text-left">
+                                (Extra rooms like gyms, offices, conservatories, converted attics or others count as bedrooms)
+                            </v-card-text>
+
+                            <v-form v-model="valid">
+                                <v-row>
+                                    <v-col cols="12" md="6">
+                                        <label>Bedroom</label>
+                                        <v-select
+                                            v-model="bedroomModel"
+                                            :items="bedroom"
+                                            @change="bedroomChangeExtrasPrice($event)"
+                                            outlined
+                                            name="bedroom"
+                                        ></v-select>
+                                    </v-col>
+
+                                    <v-col cols="12" md="6">
+                                        <label>Bathroom</label>
+                                        <v-select
+                                            v-model="bathroomModel"
+                                            :items="bathroom"
+                                            @change="bathroomChangeExtrasPrice($event)"
+                                            outlined
+                                            name="bathroom"
+
+                                        ></v-select>
+                                    </v-col>
+
+                                </v-row>
+                            </v-form>
+
+                            <v-divider class="my-4"></v-divider>
+
+                            <v-card-title>STEP 2: SELECT EXTRAS</v-card-title>
+                            <v-item-group active-class="blue" v-model="selected" >
+                                    <v-row>
+                                        <v-col
+                                            v-for="(item, index) in extrases"
+                                            :key="index"
+                                            cols="6"
+                                            xs="6"
+                                            sm="6"
+                                            md="4"
+                                            lg="3"
+                                        >
+                                            <v-item>
+                                                <v-card  class="d-flex align-center" height="80" :color="item.backgroundColor">
+                                                    <div class="display-3 flex-grow-1 text-center">
+                                                        <div v-if="!item.iscounter" @click="markFixedExtras(item)">
+                                                            <v-tooltip max-width="150" bottom>
+                                                                <template v-slot:activator="{ on, attrs }">
+                                                                    <v-icon
+                                                                            x-large
+                                                                            v-bind="attrs"
+                                                                            v-on="on"
+                                                                    >
+                                                                        {{ item.icon }}
+                                                                    </v-icon>
+                                                                </template>
+                                                                <span style="height: 50px">
+                                                              {{ item.description }}
+                                                            </span>
+                                                            </v-tooltip>
+                                                        </div>
+                                                        <div v-else-if="item.showIcon" @click="item.showIcon = !item.showIcon">
+                                                            <v-tooltip max-width="150" bottom>
+                                                                <template v-slot:activator="{ on, attrs }">
+                                                                    <v-icon
+                                                                        x-large
+                                                                        v-bind="attrs"
+                                                                        v-on="on"
+                                                                    >
+                                                                        {{ item.icon }}
+                                                                    </v-icon>
+                                                                </template>
+                                                                <span style="height: 50px">
+                                                              {{ item.description }}
+                                                            </span>
+                                                            </v-tooltip>
+                                                        </div>
+
+                                                        <div v-else-if="!item.showIcon" class="mx-3" @mouseleave="markExtras(item)">
+                                                            <v-row>
+                                                                <v-col class="px-0">
+                                                                    <v-btn
+                                                                        @click="decrement(item)"
+                                                                        small
+                                                                    >-</v-btn>
+                                                                </v-col>
+                                                                <v-col class="px-0">
+                                                                    <v-text-field
+                                                                        v-model="item.count"
+                                                                        type="number"
+                                                                        counter="3"
+                                                                        max="3"
+                                                                        min="0"
+                                                                        small
+                                                                        :readonly="!item.isSurface"
+                                                                    >
+                                                                    </v-text-field>
+                                                                </v-col>
+                                                                <v-col class="px-0">
+                                                                    <v-btn
+                                                                        @click="increment(item)"
+                                                                        small
+                                                                    >+</v-btn>
+                                                                </v-col>
+                                                            </v-row>
+                                                        </div>
+                                                    </div>
+                                                </v-card>
+                                            </v-item>
+                                            {{ item.title }} {{item.price}} &euro; {{ item.count > 0 ? "(" + item.count+")" : ''}}
+                                        </v-col>
+                                    </v-row>
+                            </v-item-group>
+
+                            <v-divider class="my-4"></v-divider>
+
+                            <v-card-title>STEP 3: YOUR ADDRESS</v-card-title>
+                            <v-card-text>
+                                Where would you like us to clean?
+                            </v-card-text>
+
+                            <v-row>
+                                <v-col cols="12" md="8">
+                                    <label>Address</label>
+                                    <v-text-field
+                                        name="input_adress"
+                                        v-model="address"
+                                        :rules="nameRules"
+                                        outlined
+                                        required
+                                    ></v-text-field>
+                                </v-col>
+
+                                <v-col cols="12" md="4">
+                                    <label>Apt/Suite</label>
+                                    <v-text-field
+                                        v-model="suite"
+                                        :rules="nameRules"
+                                        outlined
+                                        required
+                                    ></v-text-field>
+                                </v-col>
+                            </v-row>
+
+                            <v-row>
+                                <v-col
+                                    cols="12"
+                                    md="6"
+                                >
+                                    <label>City</label>
+                                    <v-text-field
+                                        v-model="city"
+                                        :rules="nameRules"
+                                        outlined
+                                        required
+                                    ></v-text-field>
+                                </v-col>
+                                <v-col
+                                    cols="12"
+                                    md="6"
+                                >
+                                    <label>Eir Code</label>
+                                    <v-text-field
+                                        v-model="eircode"
+                                        name="input-7-1"
+                                        outlined
+                                        required
+                                    ></v-text-field>
+                                </v-col>
+                            </v-row>
+
+                            <v-card-text>
+                                When would you like us to come?
+                            </v-card-text>
+
+                            <v-row>
+                                <v-col
+                                    cols="12"
+                                    md="6"
+                                >
+
+                                    <v-menu
+                                        ref="dateMenuRef"
+                                        v-model="dateMenuModel"
+                                        :close-on-content-click="false"
+                                        :return-value.sync="date"
+                                        transition="scale-transition"
+                                        offset-y
+                                        min-width="auto"
+                                    >
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <label class="ml-8">Date (DD/MM/YYYY format)</label>
+                                            <v-text-field
+                                                v-model="computedDateFormatted"
+                                                prepend-icon="mdi-calendar"
+                                                readonly
+                                                v-bind="attrs"
+                                                v-on="on"
+                                                outlined
+                                            ></v-text-field>
+                                        </template>
+                                        <v-date-picker
+                                            v-model="dateModel"
+                                            no-title
+                                            scrollable
+                                        >
+                                            <v-spacer></v-spacer>
+                                            <v-btn
+                                                text
+                                                color="primary"
+                                                @click="dateMenuModel = false"
+                                            >
+                                                Cancel
+                                            </v-btn>
+                                            <v-btn
+                                                text
+                                                color="primary"
+                                                @click="$refs.dateMenuRef.save(date)"
+                                            >
+                                                OK
+                                            </v-btn>
+                                        </v-date-picker>
+                                    </v-menu>
+                                </v-col>
+                                <v-spacer></v-spacer>
+                                <v-col
+                                    cols="12"
+                                    md="6"
+                                >
+                                    <v-menu
+                                        ref="menuTimeRef"
+                                        v-model="menuTimeModel"
+                                        :close-on-content-click="false"
+                                        :nudge-right="40"
+                                        :return-value.sync="timeModel"
+                                        transition="scale-transition"
+                                        offset-y
+                                        max-width="290px"
+                                        min-width="290px"
+                                    >
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <label class="ml-8">Time</label>
+                                            <v-text-field
+                                                v-model="timeModel"
+                                                name="input-7-1"
+                                                prepend-icon="mdi-clock-outline"
+                                                readonly
+                                                v-bind="attrs"
+                                                v-on="on"
+                                                outlined
+                                            ></v-text-field>
+                                        </template>
+                                        <v-time-picker
+                                            v-if="menuTimeModel"
+                                            v-model="timeModel"
+                                            full-width
+                                            @click:minute="$refs.menuTimeRef.save(timeModel)"
+                                        ></v-time-picker>
+                                    </v-menu>
+                                </v-col>
+                                <v-spacer></v-spacer>
+                            </v-row>
+                            <v-row>
+                                <v-col
+                                    cols="12"
+                                    md="12"
+                                >
+                                    <v-textarea
+                                        name="input-7-1"
+                                        label="Comments – Special Instructions"
+                                        v-model="commentsModel"
+                                        outlined
+                                    ></v-textarea>
+                                </v-col>
+                            </v-row>
+                            <v-divider class="my-4"></v-divider>
+                            <v-card-title>
+                                STEP 4: ENTER YOUR CONTACTS
+                            </v-card-title>
+                            <v-card-text>
+                                This information will be used to contact you about your service.
+                            </v-card-text>
+                                <v-row>
+                                    <v-col
+                                        cols="12"
+                                        md="6"
+                                    >
+                                        <label>First name</label>
+                                        <v-text-field
+                                            v-model="firstname"
+                                            :rules="nameRules"
+                                            outlined
+                                            required
+                                            name="user_name"
+                                        ></v-text-field>
+                                    </v-col>
+
+                                    <v-col
+                                        cols="12"
+                                        md="6"
+                                    >
+                                        <label>Last name</label>
+                                        <v-text-field
+                                            v-model="lastname"
+                                            :rules="nameRules"
+                                            outlined
+                                            required
+                                        ></v-text-field>
+                                    </v-col>
+
+                                    <v-col
+                                        cols="12"
+                                        md="6"
+                                    >
+                                        <label>E-mail</label>
+                                        <v-text-field
+                                            v-model="email"
+                                            :rules="emailRules"
+                                            outlined
+                                            required
+                                            name="from_email"
+                                        ></v-text-field>
+                                    </v-col>
+                                    <v-col
+                                        cols="12"
+                                        md="6"
+                                    >
+                                        <label>Phone</label>
+                                        <v-text-field
+                                            v-model="phone"
+                                            :rules="nameRules"
+                                            outlined
+                                            required
+                                        ></v-text-field>
+                                    </v-col>
+                                </v-row>
+                            <v-divider class="my-4"></v-divider>
+                            <v-row>
+                                <v-card-text class="text-center">
+                                    Payment for the Cleaning Services must be made to our supervisor at the place.
+                                </v-card-text>
+                            </v-row>
+                            <v-row>
+                                <v-card-text class="text-center">
+                                    By clicking Book Now, you are agreeing to our Terms and Conditions and Privacy Policy.
+                                </v-card-text>
+                            </v-row>
+                            <v-row>
+                                <v-card-text class="text-center">
+                                    After you press the Book Now button bellow, we'll email you ASAP to confirm that your preferred time slot is available and
+                                    finalise your booking.
+                                </v-card-text>
+                            </v-row>
+                            <v-divider class="my-4"></v-divider>
+                            <form class="contact-form" ref="form" @submit.prevent="sendEmail">
+                                <input type="hidden" name="firstname" v-model="firstname">
+                                <input type="hidden" name="lastname" v-model="lastname">
+                                <input type="hidden" name="email" v-model="email">
+                                <input type="hidden" name="phone" v-model="phone">
+                                <input type="hidden" name="address" v-model="address">
+                                <input type="hidden" name="suite" v-model="suite">
+                                <input type="hidden" name="city" v-model="city">
+                                <input type="hidden" name="eircode" v-model="eircode">
+                                <input type="hidden" name="bedroom" v-model="bedroomModel">
+                                <input type="hidden" name="bathroom" v-model="bathroomModel">
+                                <input type="hidden" name="date" v-model="computedDateFormatted">
+                                <input type="hidden" name="hour" v-model="timeModel">
+                                <input type="hidden" name="comments" v-model="commentsModel">
+                                <input type="hidden" name="summary_price" v-model="summaryPrice">
+                                <input type="hidden" name="extrases" v-model="extrasesModel">
+                                <input type="hidden" name="payment_method" v-model="paymentMethod">
+                                <div class="text-center">
+                                    <v-btn
+                                        color="primary"
+                                        class="mr-4"
+                                        type="submit"
+                                        :disabled="!authorize"
+                                        :loading="loading"
+                                    >
+                                        Book Now
+                                    </v-btn>
+                                </div>
+                            </form>
+                        </v-card-text>
+                    </v-card>
+                </v-flex>
+
+                <v-flex d-flex xs12 md9 lg2 child-flex class="bookingSummary">
+                    <v-card elevation="20" class="p-4">
+                            <v-card-title>
+                                <span style="color: #27ade4">BOOKING SUMMARY</span>
+                            </v-card-title>
+                        <v-card-text>
+                            <v-row>
+                                <v-col>
+                                    <v-icon large>mdi-home</v-icon>
+                                    {{ bedroomModel }}
+                                </v-col>
+                            </v-row>
+                            <v-row>
+
+                            <v-col>
+                                    <v-icon large>mdi-calendar</v-icon>
+                                    {{computedDateFormatted}}, {{timeModel}}
+
+                            </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col>
+                                    <v-icon large>mdi-refresh</v-icon>
+                                    One Time
+                                </v-col>
+                            </v-row>
+                            <v-divider class="my-4"></v-divider>
+                            <v-row>
+                                <v-col>
+                                    Total:
+                                    <span class="font-weight-black text-h6">
+                                        {{summaryPrice}}
+                                    </span>
+                                    <v-icon color="black">mdi-currency-eur</v-icon>
+                                </v-col>
+                            </v-row>
+                        </v-card-text>
+                    </v-card>
+                </v-flex>
+
+            </v-layout>
+        </v-container>
+    </v-app>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+<script src="https://js.stripe.com/v3"></script>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        vuetify: new Vuetify(),
+        data: {
+            isCreditCard: true,
+            paymentMethod: null,
+            bathroomModel: "1 Bathroom",
+            dateMenuModel: false,
+            date: new Date().toISOString().substr(0, 10),
+            dateModel: new Date().toISOString().substr(0, 10),
+            timeModel: null,
+            bedroomModel: "Deep Clean - One Bedroom Home",
+            commentsModel: "",
+            extrasesModel: "",
+            valid: true,
+            loading: false,
+            userEmail: '',
+            address: '',
+            suite: '',
+            city: '',
+            state: '',
+            eircode: '',
+            menu: false,
+            modal: false,
+            menu2: false,
+            menuTimeModel: false,
+            modal2: false,
+            firstname: null,
+            lastname: null,
+            email: null,
+            phone: null,
+            authorize: false,
+            summaryPrice: 130,
+            bedroomPrice: 110,
+            bathroomPrice: 20,
+            selected: [],
+            nameRules: [
+                v => !!v || 'Is required',
+                v => v?.length <= 100 || 'Name must be less than 100 characters',
+            ],
+            emailRules: [
+                v => !!v || 'E-mail is required',
+                v => /.+@.+/.test(v) || 'E-mail must be valid',
+            ],
+            extrases: [
+                {
+                    price: 15,
+                    icon: 'mdi-window-closed-variant',
+                    title: 'Clean Inside Windows +',
+                    description: "",
+                    iscounter: false,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 15,
+                    icon: 'mdi-door-open',
+                    title: 'Clean all Doors +',
+                    description: "",
+                    iscounter: false,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 20,
+                    icon: 'mdi-fridge',
+                    title: 'Clean Inside the Fridge +',
+                    description: "",
+                    iscounter: false,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 35,
+                    icon: 'mdi-stove',
+                    title: 'Clean Inside the Oven +',
+                    description: "",
+                    iscounter: false,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 45,
+                    icon: 'mdi-stove',
+                    title: 'Clean Inside the Double Oven +',
+                    description: "",
+                    iscounter: false,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 20,
+                    icon: 'mdi-file-cabinet',
+                    title: 'Clean Inside Kitchen Presses (must be empty) +',
+                    description: "",
+                    iscounter: false,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 20,
+                    icon: 'mdi-wardrobe-outline',
+                    title: 'Clean Inside Wardrobes/Bathroom Cabinets (must be empty) +',
+                    description: "",
+                    iscounter: false,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 7,
+                    icon: 'mdi-blinds',
+                    title: 'Clean Venetian Blinds, each +',
+                    description: "",
+                    iscounter: true,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 40,
+                    icon: 'mdi-cash',
+                    title: 'Carpet Steam Cleaning per Bedroom +',
+                    description: "",
+                    iscounter: true,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 50,
+                    icon: 'mdi-cash',
+                    title: 'Carpet Steam Cleaning per Sitting/Living room +',
+                    description: "",
+                    iscounter: true,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 30,
+                    icon: 'mdi-cash',
+                    title: 'Rug Steam Cleaning +',
+                    description: "",
+                    iscounter: true,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 60,
+                    icon: 'mdi-stairs-up',
+                    title: 'Carpet Steam Cleaning per Flight of Stairs + Landing +',
+                    description: "",
+                    iscounter: true,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 20,
+                    icon: 'mdi-sofa',
+                    title: 'Sofa Steam Cleaning per Seater +',
+                    description: "",
+                    iscounter: true,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 40,
+                    icon: 'mdi-hotel',
+                    title: 'Mattress Steam Cleaning +',
+                    description: "",
+                    iscounter: true,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: false,
+                    isChecked: false
+                },
+                {
+                    price: 3,
+                    icon: 'mdi-grid',
+                    title: 'Tile & Grout Steam Cleaning per Square Meter +',
+                    description: "only up to 100 m",
+                    iscounter: true,
+                    count: 0,
+                    showIcon: true,
+                    backgroundColor: "",
+                    isSurface: true,
+                    isChecked: false
+                },
+            ],
+            bedroom: [
+                'Deep Clean - One Bedroom Home',
+                'Deep Clean - Two Bedroom Home',
+                'Deep Clean - Three Bedroom Home',
+                'Deep Clean – Four Bedroom Home',
+                'Deep Clean - Five Bedroom Home',
+                'Deep Clean - Six Bedroom Home'
+            ],
+            bathroom: [
+                '1 Bathroom',
+                '2 Bathrooms',
+                '3 Bathrooms',
+                '4 Bathrooms',
+                '5 Bathrooms',
+                '6 Bathrooms',
+            ],
+        },
+        computed: {
+            computedDateFormatted () {
+                return this.formatDate(this.dateModel)
+            },
+        },
+        methods: {
+            formatDate (date) {
+                if (!date) return null
+
+                const [year, month, day] = date.split('-')
+                return `${day}/${month}/${year}`
+            },
+            decrement(item){
+                item.count--
+                if(item.count < 0){
+                    item.count = 0
+                }
+            },
+            increment(item){
+                item.count++
+                if(item.title === 'Clean Venetian Blinds, each +'){
+                    if(item.count > 20){
+                        item.count = 20
+                    }
+                    return
+                }
+                if(item.isSurface){
+                    if(item.count > 100){
+                        item.count = 100
+                    }
+                    return
+                }
+                if(item.count > 6){
+                    item.count = 6
+                }
+            },
+            markExtras(item){
+                if(item.count > 0){
+                    item.backgroundColor= 'blue';
+                    item.showIcon = true;
+                    item.isChecked = true;
+                }else{
+                    item.backgroundColor = '';
+                    item.showIcon = true;
+                    item.isChecked = false;
+                }
+                this.calculator()
+            },
+            markFixedExtras(item){
+                if(!item.isChecked){
+                    item.backgroundColor= 'blue';
+                    item.showIcon = true;
+                    item.isChecked = true;
+                    item.count = 1;
+                }else{
+                    item.backgroundColor = '';
+                    item.showIcon = true;
+                    item.isChecked = false;
+                    item.count = 0;
+                }
+                this.calculator()
+            },
+            bedroomChangeExtrasPrice(e){
+                switch (e) {
+                    case 'Deep Clean - One Bedroom Home':
+                        this.extrases[0]['price'] = 15
+                        this.extrases[1]['price'] = 15
+
+                        this.bedroomPrice = 110
+                        this.calculator()
+
+                        break;
+                    case 'Deep Clean - Two Bedroom Home':
+                        this.extrases[0]['price'] = 20
+                        this.extrases[1]['price'] = 20
+
+                        this.bedroomPrice = 130
+                        this.calculator()
+
+                        break;
+                    case 'Deep Clean - Three Bedroom Home':
+                        this.extrases[0]['price'] = 25
+                        this.extrases[1]['price'] = 25
+
+                        this.bedroomPrice = 150
+                        this.calculator()
+
+                        break;
+                    case 'Deep Clean – Four Bedroom Home':
+                        this.extrases[0]['price'] = 30
+                        this.extrases[1]['price'] = 30
+
+                        this.bedroomPrice = 170
+                        this.calculator()
+
+                        break;
+                    case 'Deep Clean - Five Bedroom Home':
+                        this.extrases[0]['price'] = 35
+                        this.extrases[1]['price'] = 35
+
+                        this.bedroomPrice = 190
+                        this.calculator()
+
+                        break;
+                    case 'Deep Clean - Six Bedroom Home':
+                        this.extrases[0]['price'] = 40
+                        this.extrases[1]['price'] = 40
+
+                        this.bedroomPrice = 210
+                        this.calculator()
+
+                        break;
+                }
+            },
+            bathroomChangeExtrasPrice(e){
+                switch (e) {
+                    case '1 Bathroom':
+                        this.bathroomPrice = 20
+                        this.calculator()
+
+                        break;
+                    case '2 Bathrooms':
+                        this.bathroomPrice = 40
+                        this.calculator()
+
+                        break;
+                    case '3 Bathrooms':
+                        this.bathroomPrice = 60
+                        this.calculator()
+
+                        break;
+                    case '4 Bathrooms':
+                        this.bathroomPrice = 80
+                        this.calculator()
+
+                        break;
+                    case '5 Bathrooms':
+                        this.bathroomPrice = 100
+                        this.calculator()
+
+                        break;
+                    case '6 Bathrooms':
+                        this.bathroomPrice = 120
+                        this.calculator()
+
+                        break;
+                }
+            },
+            calculator(){
+                let checkedExtrases = this.extrases.filter(extras => extras.isChecked == true);
+                let extrasPrice = checkedExtrases.map((e) => {
+                    e.total = parseInt(e.count) * parseFloat(e.price)
+
+                    return e
+                });
+                let extrasesSummaryPrice = extrasPrice.reduce((prev, cur) => prev + cur.total, 0);
+                this.summaryPrice = this.bedroomPrice + this.bathroomPrice + extrasesSummaryPrice;
+                let u = checkedExtrases.map((e) => {
+                    return 'Extras name: '+ e.title + ', count: ' + e.count + ', unit price: ' + e.price + ', total Price: '+ e.total + '; '
+                });
+                let text = '';
+
+                u.forEach((e)=>{
+                    text += e
+                })
+                this.extrasesModel = text;
+
+            },
+            submitForm(emailCredentials){
+                this.loading = true;
+                this.sendEmail(emailCredentials)
+                this.loading = false;
+            },
+            // sendEmail: (e) => {emailjs.sendForm('service_jpbtkdb', 'template_7gwu7zb', e.target, 'i5JN3l0J2ehd3ZJ2N')
+            //         .then((result) => {
+            //             alert(result.text+'! Your form is sent.');
+            //         }, (error) => {
+            //             alert(error);
+            //         });
+            // },
+
+            sendEmail() {
+                this.loading = true; 
+      emailjs.sendForm('service_jpbtkdb', 'template_7gwu7zb', this.$refs.form, 'i5JN3l0J2ehd3ZJ2N')
+        .then((result) => {
+            // console.log('SUCCESS!', result.text); 
+            alert(result.text+'! Your form is sent.');
+                this.loading = false;
+            
+
+
+        }, (error) => {
+            console.log('FAILED...', error.text);
+        });
+    }
+        },
+        watch: {
+            firstname(v){
+                this.authorize = Boolean(v) && this.lastname && this.email && this.phone
+            },
+            lastname(v){
+                this.authorize = Boolean(v) && this.firstname && this.email && this.phone
+            },
+            email(v){
+                this.authorize = Boolean(v) && this.lastname && this.firstname && this.phone
+            },
+            phone(v){
+                this.authorize = Boolean(v) && this.lastname && this.firstname && this.email
+            },
+        },
+    })
+</script>
+<style>
+    @media only screen and (min-width: 1300px) {
+        .bookingSummary{
+            position: fixed;
+            top: 100px;
+            right: 0%;
+        }
+        .extrases{
+            margin-left: 20px;
+        }
+    }
+
+    #inputCard{
+        border: 1px solid grey;
+        border-radius: 3px;
+        padding: 20px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    .wsite-form-input,
+    textarea.wsite-form-input,
+    #commentPostDiv .field
+    textarea {
+        border: none !important;
+        background: white !important;
+    }
+</style>
+</body>
+</html>
+
+
+
+
+
+ 
